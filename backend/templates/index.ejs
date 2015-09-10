@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html<% if (appCache) { %> manifest="manifest.appcache"<% } %>>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <base href="/">
+  <title>walkner-iovis</title>
+  <link rel="stylesheet" href="main.css">
+  <script src="/vendor/jquery-2.1.4.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="main.js"></script>
+</head>
+<body>
+<h1>I/O Visualization</h1>
+<div id="requestCounter">
+  <span id="requestCounter-success" title="Successful requests">0</span>/<span id="requestCounter-failure" title="Failed requests">0</span>/<span id="requestCounter-sent" title="Total sent requests">0</span>
+</div>
+<div id="config-container">
+  <h2>Configuration</h2>
+  <form id="config">
+    <div class="form-group">
+      <label for="config-address">Device IP address:</label>
+      <input id="config-address" class="form-control" type="text">
+    </div>
+    <div class="form-group">
+      <label for="config-file">Configuration file:</label>
+      <input id="config-file" class="form-control" type="file">
+    </div>
+    <div class="form-group">
+      <textarea id="config-input" class="form-control" rows="10"></textarea>
+    </div>
+  </form>
+</div>
+<div id="controls-container">
+  <div id="inputs-container">
+    <h2>Inputs</h2>
+    <div id="inputs"></div>
+  </div>
+  <div id="outputs-container">
+    <h2>Outputs</h2>
+    <div id="outputs"></div>
+  </div>
+  <div id="analogs-container">
+    <h2>Analogs</h2>
+    <div id="analogs"></div>
+  </div>
+</div>
+<script>
+<% Object.keys(appData).forEach(function(key) { %>
+window.<%- key %> = <%- appData[key] %>;
+<% }) %>
+</script>
+</body>
+</html>

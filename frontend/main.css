@@ -1,0 +1,97 @@
+@import url(./vendor/bootstrap/css/bootstrap.min.css);
+@import url(./vendor/bootstrap/css/bootstrap-theme.min.css);
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+
+body {
+  margin: 30px;
+  overflow-y: scroll;
+  line-height: 1;
+}
+h1,
+h2 {
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px dotted #ddd;
+}
+#requestCounter {
+  position: absolute;
+  top: 30px;
+  right: 30px;
+}
+#requestCounter-success {
+  color: green;
+}
+#requestCounter-failure {
+  color: red;
+}
+#config-container {
+  position: fixed;
+  top: 90px;
+  right: 30px;
+  bottom: 30px;
+  width: 400px;
+}
+#controls-container {
+  margin-right: 430px;
+}
+#config-input {
+  overflow: scroll;
+  resize: none;
+  font-family: Consolas, Menlo, Monaco, monospace;
+}
+#inputs-container > h2,
+#outputs-container > h2,
+#analogs-container > h2 {
+  margin-bottom: 5px;
+}
+.input,
+.output,
+.analog {
+  min-width: 200px;
+  display: inline-block;
+  margin: 15px 15px 0 0;
+  font-family: Consolas, Menlo, Monaco, monospace;
+  font-size: 2em;
+  cursor: default;
+}
+.input {
+  border-radius: 1em;
+}
+.output {
+  cursor: pointer;
+  border-radius: 0;
+}
+.output .btn-warning {
+  cursor: not-allowed;
+}
+.analog .input-group {
+  display: flex;
+}
+.analog .input-group-addon {
+  flex: 1 1 auto;
+  display: inline-block;
+  font-size: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  line-height: 54px;
+}
+.analog .form-control {
+  flex: 0 0 auto;
+  display: inline-block;
+  width: 101px;
+  height: auto;
+  font-size: inherit;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.analog.is-writing .input-group-addon {
+  background: #e38d13;
+  color: #fff;
+}

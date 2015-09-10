@@ -1,0 +1,36 @@
+{
+  "name": "walkner-iovis",
+  "version": "0.0.0",
+  "description": "Simple CoAP I/O visualization from a configuration file.",
+  "license": "CC-BY-NC-SA-4.0",
+  "homepage": "https://github.com/morkai/walkner-iovis",
+  "author": {
+    "name": "Łukasz Walukiewicz",
+    "email": "lukasz@miracle.systems",
+    "url": "http://miracle.systems/"
+  },
+  "bugs": "https://github.com/morkai/walkner-iovis/issues",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/morkai/walkner-iovis.git"
+  },
+  "engine": [
+    "node ~0.12.7"
+  ],
+  "main": "./backend/main.js",
+  "dependencies": {
+    "methods": "~1.1.1",
+    "express": "~4.13.3",
+    "ejs": "~2.3.4",
+    "socket.io": "~1.3.6",
+    "lodash": "~3.10.1",
+    "h5.step": "~0.1.0",
+    "h5.pubsub": "git+http://github.com/morkai/h5.pubsub.git#c1a899cb7e",
+    "h5.main": "git+http://github.com/morkai/h5.main.git#775f3a9ba7",
+    "h5.buffers": "~0.1.1",
+    "h5.coap": "git+http://github.com/morkai/h5.coap.git#51c3b2a4cb"
+  },
+  "devDependencies": {
+    "coap": "~0.12.0"
+  }
+}
