@@ -13,6 +13,11 @@ var socket = io({
   autoConnect: true
 });
 
+socket.on('reconnect', function()
+{
+  window.location.reload();
+});
+
 var READ_RESPONSE_HANDLERS = {
   in: handleReadInputResponse,
   out: handleReadOutputResponse,
