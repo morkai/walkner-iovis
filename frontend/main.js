@@ -397,7 +397,7 @@ function toggleOutput(io)
   var reqGroupId = requestGroupId;
   var req = {
     type: 'NON',
-    code: 'PUT',
+    code: 'POST',
     uri: 'coap://' + address + '/io/WD?tim=' + io.tim
     + '&ch=' + io.channel
     + '&t=' + io.type
@@ -464,7 +464,7 @@ function setAnalog(io, value)
   var reqGroupId = requestGroupId;
   var req = {
     type: 'NON',
-    code: 'PUT',
+    code: 'POST',
     uri: 'coap://' + address + '/io/WD?tim=' + io.tim
     + '&ch=' + io.channel
     + '&t=' + io.type
