@@ -3,6 +3,9 @@ var config = {};
 var requestGroupId = 0;
 var readRequestsTodo = 0;
 var readRequestsDone = 0;
+var scanRequestsTodo = [0, 0, 0];
+var scanRequestsDone = [0, 0, 0];
+var scanResults = [];
 var requestSentCounter = 0;
 var requestSuccessCounter = 0;
 var requestFailureCounter = 0;
@@ -32,6 +35,8 @@ $(function()
     updateAddress(e.target.value);
     reset();
   });
+
+  $('#config-scan').on('click', scan);
 
   $('#config-file').on('change', function(e)
   {
@@ -145,7 +150,7 @@ function parseInput(input)
 {
   config = {};
 
-  var re = /([A-Z0-9_]+)\s+([0-9]+)\s+([0-9]+)\s+(in|out|anal|func)/ig;
+  var re = /([A-Z0-9_-]+)\s+([0-9]+)\s+([0-9]+)\s+(in|out|anal|func)/ig;
   var matches;
 
   while (matches = re.exec(input))
@@ -312,7 +317,7 @@ function read(io)
     {
       ++requestFailureCounter;
 
-      console.error('Error reading %s: %s', io.name, err.message);
+      //console.error('Error reading %s: %s', io.name, err.message);
     }
     else if (res.payload.indexOf('0') !== 0)
     {
@@ -632,4 +637,201 @@ function setFunction(io, value)
 
     updateRequestCounter();
   });
+}
+
+function unlockAfterScan()
+{
+  scanRequestsDone = [0, 0];
+  scanRequestsTodo = [0, 0];
+  scanResults = [];
+
+  $('#config').find('.form-control').prop('disabled', false);
+}
+
+function scan()
+{
+  if (!address.length || scanRequestsTodo[0] !== 0)
+  {
+    return;
+  }
+
+  updateInput('');
+  reset();
+  $('#config').find('.form-control').prop('disabled', true);
+
+  var req = {
+    type: 'CON',
+    code: 'GET',
+    uri: 'coap://' + address + '/io/TDisc'
+  };
+  var options = {
+    exchangeTimeout: 10000,
+    transactionTimeout: 1000,
+    maxRetransmit: 3,
+    blockSize: 64
+  };
+
+  updateRequestCounter(++requestSentCounter);
+
+  socket.emit('request', req, options, function(err, res)
+  {
+    if (err)
+    {
+      updateRequestCounter(++requestFailureCounter);
+      unlockAfterScan();
+
+      return console.error("Error scanning: %s", err.message);
+    }
+
+    updateRequestCounter(++requestSuccessCounter);
+
+    var tims = res.payload.split('\n')[1].split(',');
+
+    scanRequestsDone = [0, 0];
+    scanRequestsTodo = [tims.length, 0];
+    scanResults = [];
+
+    tims.forEach(function(timId)
+    {
+      scanTim(parseInt(timId.trim(), 10));
+    });
+  });
+}
+
+function scanTim(timId)
+{
+  var req = {
+    type: 'CON',
+    code: 'GET',
+    uri: 'coap://' + address + '/io/CDisc?tim=' + timId
+  };
+  var options = {
+    exchangeTimeout: 10000,
+    transactionTimeout: 1000,
+    maxRetransmit: 3,
+    blockSize: 64
+  };
+
+  updateRequestCounter(++requestSentCounter);
+
+  socket.emit('request', req, options, function(err, res)
+  {
+    if (err)
+    {
+      updateRequestCounter(++requestFailureCounter);
+      unlockAfterScan();
+
+      return console.error("Error scanning TIM %d: %s", timId, err.message);
+    }
+
+    updateRequestCounter(++requestSuccessCounter);
+
+    ++scanRequestsDone[0];
+
+    var lines = res.payload.split('\n');
+    var channelIds = lines[2].split(',');
+    var transducerNames = lines[3].replace(/"/g, '').split(',');
+
+    scanRequestsTodo[1] += channelIds.length;
+
+    channelIds.forEach(function(channelId, i)
+    {
+      setTimeout(
+        scanChannel,
+        Math.round(10 + Math.random() * 200),
+        timId,
+        parseInt(channelId.trim(), 10),
+        transducerNames[i]
+      );
+    });
+  });
+}
+
+function scanChannel(timId, channelId, transducerName)
+{
+  var req = {
+    type: 'CON',
+    code: 'GET',
+    uri: 'coap://' + address + '/io/RTeds?tim=' + timId + '&ch=' + channelId + '&TT=4'
+  };
+  var options = {
+    exchangeTimeout: 10000,
+    transactionTimeout: 1000,
+    maxRetransmit: 3,
+    blockSize: 64
+  };
+
+  updateRequestCounter(++requestSentCounter);
+
+  socket.emit('request', req, options, function(err, res)
+  {
+    if (err)
+    {
+      updateRequestCounter(++requestFailureCounter);
+      unlockAfterScan();
+
+      return console.error("Error scanning channel %d of TIM %d: %s", channelId, timId, err.message);
+    }
+
+    updateRequestCounter(++requestSuccessCounter);
+
+    ++scanRequestsDone[1];
+
+    var type = null;
+
+    if (/Digital Input/i.test(res.payload))
+    {
+      type = 'in';
+    }
+    else if (/Digital Output/i.test(res.payload))
+    {
+      type = 'out';
+    }
+    else if (/(Digit.*?|Analog|Step g) (Input|Output)/i.test(res.payload))
+    {
+      type = 'anal';
+    }
+
+    if (type)
+    {
+      scanResults.push({
+        timId: timId,
+        channelId: channelId,
+        name: (transducerName || ('T_' + timId + '_' + channelId)).trim(),
+        type: type
+      });
+    }
+
+    if (scanRequestsDone[1] === scanRequestsTodo[1])
+    {
+      buildInputFromScanResults();
+    }
+  });
+}
+
+function buildInputFromScanResults()
+{
+  var input = [];
+
+  scanResults.sort(function(a, b)
+  {
+    var r = a.timId - b.timId;
+
+    if (r === 0)
+    {
+      r = a.channelId - b.channelId;
+    }
+
+    return r;
+  });
+
+  scanResults.forEach(function(io)
+  {
+    input.push(io.name + ' ' + io.timId + ' ' + io.channelId + ' ' + io.type);
+  });
+
+  unlockAfterScan();
+  updateInput(input.join('\n'));
+  renderIo();
+  readAll();
 }

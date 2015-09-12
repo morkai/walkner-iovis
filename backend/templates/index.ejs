@@ -21,7 +21,12 @@
   <form id="config">
     <div class="form-group">
       <label for="config-address">Device IP address:</label>
-      <input id="config-address" class="form-control" type="text">
+      <div class="input-group">
+        <input id="config-address" class="form-control" type="text">
+        <span class="input-group-btn">
+          <button id="config-scan" class="btn btn-default" type="button">Scan</button>
+        </span>
+      </div>
     </div>
     <div class="form-group">
       <label for="config-file">Configuration file:</label>

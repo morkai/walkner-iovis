@@ -76,8 +76,14 @@ exports.start = function startIovisModule(app, module)
     };
   }
 
-  function handleRequestMessage(req, done)
+  function handleRequestMessage(req, options, done)
   {
+    if (_.isFunction(options))
+    {
+      done = options;
+      options = {};
+    }
+
     if (!_.isFunction(done))
     {
       return;
@@ -104,6 +110,6 @@ exports.start = function startIovisModule(app, module)
       });
     });
 
-    client.request(req);
+    client.request(req, options);
   }
 };
