@@ -100,7 +100,7 @@ exports.start = function startIovisModule(app, module)
     {
       complete(null, {
         code: res.getCodeDefinition().name,
-        payload: res.getContentFormat() <= 0 ? res.getPayload().toString() : res.getPayload().toJSON()
+        payload: res.getPayload().toString()
       });
     });
 
