@@ -99,7 +99,7 @@ $(function()
 
 function resizeInput()
 {
-  var height = window.innerHeight - 110 - 54 - 20 - 53 - 15 - 53 - 15 - 30;
+  var height = window.innerHeight - 90 - 54 - 20 - 53 - 15 - 53 - 15 - 30;
 
   $('#config-input').css('height', height + 'px');
 }
