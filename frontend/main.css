@@ -48,12 +48,14 @@ h2 {
 }
 #inputs-container > h2,
 #outputs-container > h2,
-#analogs-container > h2 {
+#analogs-container > h2,
+#functions-container > h2 {
   margin-bottom: 5px;
 }
 .input,
 .output,
-.analog {
+.analog,
+.function {
   min-width: 200px;
   display: inline-block;
   margin: 15px 15px 0 0;
@@ -68,13 +70,18 @@ h2 {
   cursor: pointer;
   border-radius: 0;
 }
+.function {
+  display: block;
+}
 .output .btn-warning {
   cursor: not-allowed;
 }
-.analog .input-group {
+.analog .input-group,
+.function .input-group {
   display: flex;
 }
-.analog .input-group-addon {
+.analog .input-group-addon,
+.function .input-group-addon {
   flex: 1 1 auto;
   display: inline-block;
   font-size: inherit;
@@ -82,7 +89,8 @@ h2 {
   padding-bottom: 0;
   line-height: 54px;
 }
-.analog .form-control {
+.analog .form-control,
+.function .form-control {
   flex: 0 0 auto;
   display: inline-block;
   width: 101px;
@@ -91,7 +99,15 @@ h2 {
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
 }
-.analog.is-writing .input-group-addon {
+.function .input-group-addon {
+  flex: 0 0 auto;
+  width: auto;
+}
+.function .form-control {
+  flex: 1 1 auto;
+  width: auto;
+}
+.is-writing .input-group-addon {
   background: #e38d13;
   color: #fff;
 }

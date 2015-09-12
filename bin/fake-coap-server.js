@@ -40,6 +40,10 @@ function getState(tim, channel, type)
       value = 'OFF';
       break;
 
+    case 'func':
+      value = '';
+      break;
+
     default:
       value = 0;
       break;
@@ -72,6 +76,9 @@ function setState(tim, channel, type, payload)
       {
         newValue = null;
       }
+      break;
+
+    case 'func':
       break;
 
     default:

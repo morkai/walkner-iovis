@@ -16,7 +16,8 @@ var socket = io({
 var READ_RESPONSE_HANDLERS = {
   in: handleReadInputResponse,
   out: handleReadOutputResponse,
-  anal: handleReadAnalogResponse
+  anal: handleReadAnalogResponse,
+  func: handleReadFunctionResponse
 };
 
 $(function()
@@ -62,18 +63,31 @@ $(function()
     toggleOutput(config[e.currentTarget.dataset.id]);
   });
 
-  $('#analogs').on('change', '.form-control', function(e)
-  {
-    setAnalog(config[$(e.currentTarget).closest('.analog')[0].dataset.id], e.currentTarget.value);
-  });
-
-  $('#analogs').on('keyup', '.form-control', function(e)
-  {
-    if (e.keyCode === 13)
+  $('#analogs')
+    .on('change', '.form-control', function(e)
     {
       setAnalog(config[$(e.currentTarget).closest('.analog')[0].dataset.id], e.currentTarget.value);
-    }
-  });
+    })
+    .on('keyup', '.form-control', function(e)
+    {
+      if (e.keyCode === 13)
+      {
+        setAnalog(config[$(e.currentTarget).closest('.analog')[0].dataset.id], e.currentTarget.value);
+      }
+    });
+
+  $('#functions')
+    .on('change', '.form-control', function(e)
+    {
+      setFunction(config[$(e.currentTarget).closest('.function')[0].dataset.id], e.currentTarget.value);
+    })
+    .on('keyup', '.form-control', function(e)
+    {
+      if (e.keyCode === 13)
+      {
+        setFunction(config[$(e.currentTarget).closest('.function')[0].dataset.id], e.currentTarget.value);
+      }
+    });
 
   $(window).on('resize', resizeInput);
 
@@ -98,7 +112,7 @@ function updateAddress(newAddress)
 
   $('#config-address').val(newAddress);
 
-  if (newAddress.indexOf('.') === -1)
+  if (newAddress.length && newAddress.indexOf('.') === -1)
   {
     newAddress = '[' + newAddress + ']';
   }
@@ -126,7 +140,7 @@ function parseInput(input)
 {
   config = {};
 
-  var re = /([A-Z0-9_]+)\s+([0-9]+)\s+([0-9]+)\s+(in|out|anal)/ig;
+  var re = /([A-Z0-9_]+)\s+([0-9]+)\s+([0-9]+)\s+(in|out|anal|func)/ig;
   var matches;
 
   while (matches = re.exec(input))
@@ -149,7 +163,8 @@ function renderIo()
   var html = {
     inputs: [],
     outputs: [],
-    analogs: []
+    analogs: [],
+    functions: []
   };
 
   Object.keys(config).forEach(function(key)
@@ -167,6 +182,10 @@ function renderIo()
     else if (io.type === 'anal')
     {
       renderAnalog(html.analogs, io);
+    }
+    else if (io.type === 'func')
+    {
+      renderFunction(html.functions, io);
     }
   });
 
@@ -200,6 +219,15 @@ function renderAnalog(html, io)
     '<div class="analog" data-id="', io.name, '"><div class="input-group"><span class="input-group-addon">',
     io.name,
     '</span><input type="number" class="form-control" min="0" max="65535" step="1"></div></div>'
+  );
+}
+
+function renderFunction(html, io)
+{
+  html.push(
+    '<div class="function" data-id="', io.name, '"><div class="input-group"><span class="input-group-addon">',
+    io.name,
+    '</span><input type="text" class="form-control"></div></div>'
   );
 }
 
@@ -377,6 +405,31 @@ function handleReadAnalogResponse(io, res)
   $input.val(io.value);
 }
 
+function handleReadFunctionResponse(io, res)
+{
+  if (io.writing)
+  {
+    return;
+  }
+
+  var $function = $('.function[data-id="' + io.name + '"]');
+  var $input = $function.find('.form-control');
+
+  if (!$function.length || document.activeElement === $input[0])
+  {
+    return;
+  }
+
+  io.value = res.payload.trim().split('\n')[3];
+
+  if (io.value === undefined)
+  {
+    io.value = '';
+  }
+
+  $input.val(io.value);
+}
+
 function toggleOutput(io)
 {
   if (io.writing)
@@ -479,6 +532,71 @@ function setAnalog(io, value)
     }
 
     $analog.removeClass('is-writing');
+
+    io.writing = false;
+
+    if (err)
+    {
+      ++requestFailureCounter;
+
+      console.error('Error writing %s: %s', io.name, err.message);
+    }
+    else if (res.payload.indexOf('0') !== 0)
+    {
+      ++requestFailureCounter;
+
+      console.error('Error writing %s (%s): %d', io.name, res.code, res.payload.split('\n')[0]);
+    }
+    else
+    {
+      ++requestSuccessCounter;
+
+      io.value = value;
+
+      $input.val(value).attr('readonly', false);
+    }
+
+    updateRequestCounter();
+  });
+}
+
+function setFunction(io, value)
+{
+  if (io.writing)
+  {
+    return;
+  }
+
+  io.writing = true;
+
+  var $function = $('.function[data-id="' + io.name + '"]');
+  var $input = $function.find('.form-control');
+
+  $function.addClass('is-writing');
+  $input.attr('readonly', true);
+
+  ++requestSentCounter;
+
+  updateRequestCounter();
+
+  var reqGroupId = requestGroupId;
+  var req = {
+    type: 'NON',
+    code: 'POST',
+    uri: 'coap://' + address + '/io/WD?tim=' + io.tim
+    + '&ch=' + io.channel
+    + '&t=' + io.type
+    + '&tD=' + value
+  };
+
+  socket.emit('request', req, function(err, res)
+  {
+    if (requestGroupId !== reqGroupId)
+    {
+      return;
+    }
+
+    $function.removeClass('is-writing');
 
     io.writing = false;
 
