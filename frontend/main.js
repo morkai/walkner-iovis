@@ -382,7 +382,9 @@ function handleReadOutputResponse(io, res)
       ? false
     : null;
 
-  $output.toggleClass('active', io.value === true);
+  $output
+    .removeClass('btn-default btn-success btn-danger')
+    .addClass(io.value === null ? 'btn-default' : io.value ? 'btn-success' : 'btn-danger');
 }
 
 function handleReadAnalogResponse(io, res)
@@ -441,7 +443,9 @@ function toggleOutput(io)
 
   var $output = $('.output[data-id="' + io.name + '"]');
 
-  $output.removeClass('btn-default').addClass('btn-warning');
+  $output
+    .removeClass('btn-default btn-success btn-danger')
+    .addClass('btn-warning');
 
   ++requestSentCounter;
 
@@ -464,8 +468,6 @@ function toggleOutput(io)
       return;
     }
 
-    $output.removeClass('btn-warning').addClass('btn-default');
-
     io.writing = false;
 
     if (err)
@@ -485,9 +487,11 @@ function toggleOutput(io)
       ++requestSuccessCounter;
 
       io.value = !io.value;
-
-      $output.toggleClass('active', io.value);
     }
+
+    $output
+      .removeClass('btn-warning')
+      .addClass(io.value === null ? 'btn-default' : io.value ? 'btn-success' : 'btn-danger');
 
     updateRequestCounter();
   });

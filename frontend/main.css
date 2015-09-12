@@ -72,11 +72,11 @@ h2 {
   cursor: pointer;
   border-radius: 0;
 }
+.output.btn-warning {
+  cursor: not-allowed;
+}
 .function {
   display: block;
-}
-.output .btn-warning {
-  cursor: not-allowed;
 }
 .analog .input-group,
 .function .input-group {
