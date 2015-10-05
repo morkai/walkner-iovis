@@ -9,6 +9,8 @@ var scanResults = [];
 var requestSentCounter = 0;
 var requestSuccessCounter = 0;
 var requestFailureCounter = 0;
+var requestInProgress = false;
+var requestQueue = [];
 var socket = io({
   transports: ['websocket'],
   timeout: 10000,
@@ -673,7 +675,7 @@ function scan()
 
   updateRequestCounter(++requestSentCounter);
 
-  socket.emit('request', req, options, function(err, res)
+  queueRequest(req, options, function(err, res)
   {
     if (err)
     {
@@ -714,7 +716,7 @@ function scanTim(timId)
 
   updateRequestCounter(++requestSentCounter);
 
-  socket.emit('request', req, options, function(err, res)
+  queueRequest(req, options, function(err, res)
   {
     if (err)
     {
@@ -763,7 +765,7 @@ function scanChannel(timId, channelId, transducerName)
 
   updateRequestCounter(++requestSentCounter);
 
-  socket.emit('request', req, options, function(err, res)
+  queueRequest(req, options, function(err, res)
   {
     if (err)
     {
@@ -834,4 +836,37 @@ function buildInputFromScanResults()
   updateInput(input.join('\n'));
   renderIo();
   readAll();
+}
+
+function queueRequest(req, options, callback)
+{
+  requestQueue.push(req, options, callback);
+
+  if (!requestInProgress)
+  {
+    sendNextRequest();
+  }
+}
+
+function sendNextRequest()
+{
+  var req = requestQueue.shift();
+  var options = requestQueue.shift();
+  var callback = requestQueue.shift();
+
+  if (!callback)
+  {
+    return;
+  }
+
+  requestInProgress = true;
+
+  socket.emit('request', req, options, function(err, res)
+  {
+    requestInProgress = false;
+
+    callback(err, res);
+
+    sendNextRequest();
+  });
 }
